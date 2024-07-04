@@ -78,6 +78,14 @@ namespace Piccolo
             loadTexture(level_resource_desc.m_color_grading_resource_desc.m_color_grading_map);
 
         // create color grading texture
+        /*rhi->createGlobalImage(
+            m_global_render_resource._color_grading_resource._color_grading_LUT_texture_image,
+            m_global_render_resource._color_grading_resource._color_grading_LUT_texture_image_view,
+            m_global_render_resource._color_grading_resource._color_grading_LUT_texture_image_allocation,
+            color_grading_map->m_width,
+            color_grading_map->m_height,
+            color_grading_map->m_pixels,
+            color_grading_map->m_format);*/
         rhi->createGlobalImage(
             m_global_render_resource._color_grading_resource._color_grading_LUT_texture_image,
             m_global_render_resource._color_grading_resource._color_grading_LUT_texture_image_view,
@@ -85,7 +93,8 @@ namespace Piccolo
             color_grading_map->m_width,
             color_grading_map->m_height,
             color_grading_map->m_pixels,
-            color_grading_map->m_format);
+            color_grading_map->m_format,
+            1);
     }
 
     void RenderResource::uploadGameObjectRenderResource(std::shared_ptr<RHI> rhi,
