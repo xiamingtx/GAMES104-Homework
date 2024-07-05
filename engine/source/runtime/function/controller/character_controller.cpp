@@ -26,17 +26,39 @@ namespace Piccolo
 
     Vector3 CharacterController::move(const Vector3& current_position, const Vector3& displacement)
     {
+        // Get active physical scene from the global context and perform null pointer checking
         std::shared_ptr<PhysicsScene> physics_scene =
             g_runtime_global_context.m_world_manager->getCurrentActivePhysicsScene().lock();
         ASSERT(physics_scene);
 
-        Vector3 final_position = current_position + displacement;
+        // decompose the motion components 
+        Vector3 horizontal_displacement = Vector3(displacement.x, 0, displacement.z);
+        Vector3 horizontal_direction    = horizontal_displacement.normalisedCopy();
+        Vector3 vertical_displacement = Vector3(0, displacement.y, 0);
+        Vector3 horizontal_move_position = current_position + displacement;
 
+        // init final_position variable
+        Vector3 final_position = current_position;
         Transform final_transform = Transform(final_position, Quaternion::IDENTITY, Vector3::UNIT_SCALE);
 
-        if (physics_scene->isOverlap(m_rigidbody_shape, final_transform.getMatrix()))
+        // Collision detection in the horizontal direction
+        std::vector<PhysicsHitInfo> hits;
+        if (physics_scene->sweep(m_rigidbody_shape, final_transform.getMatrix(),
+                                horizontal_direction, horizontal_displacement.length(), hits))
         {
-            final_position = current_position;
+            final_position += horizontal_displacement - hits[0].hit_normal.dotProduct(horizontal_displacement) /
+                                                            hits[0].hit_normal.length() *
+                                                            hits[0].hit_normal.normalisedCopy();
+        }
+        else
+            final_position += horizontal_displacement;
+
+        final_transform.m_position = final_position + vertical_displacement;
+
+        // Overlap detection of vertical displacement
+        if (!physics_scene->isOverlap(m_rigidbody_shape, final_transform.getMatrix()))
+        {
+            final_position += vertical_displacement;
         }
 
         return final_position;
